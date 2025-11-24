@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>Video Forms Experience</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <main class="video-section">
+            <div class="video-inner">
+                <div class="video-wrapper">
+                    <div id="player"></div>
+                </div>
+                <div class="timeline-container">
+                    <div class="timeline-track" id="timelineTrack">
+                        <div class="timeline-progress" id="timelineProgress"></div>
+                    </div>
+                    <div class="timeline-labels">
+                        <span id="timelineWatchedLabel">Watched: 0:00</span>
+                        <span id="timelineQuestionsLabel">Questions: 0 / 0</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside id="formOverlay" class="form-overlay hidden">
+            <div class="glass-panel">
+                <div class="form-header">
+                    <h2>Quick Question</h2>
+                    <p>Please answer to continue watching</p>
+                </div>
+                <div class="iframe-container">
+                    <iframe id="formFrame" src="" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+                </div>
+                <p class="form-reminder">Please submit the form above before continuing the video.</p>
+                <button id="continueBtn" class="primary-btn">
+                    <span>Continue Video</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+            </div>
+        </aside>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
