@@ -20,8 +20,9 @@ const ratingContainer = document.getElementById('ratingContainer');
 const questionTextEl = document.getElementById('questionText');
 const answerInputEl = document.getElementById('answerInput');
 const submitAnswerBtn = document.getElementById('submitAnswerBtn');
-const GETFORM_ENDPOINT = 'https://getform.io/f/apjzdpoa';
+const GETFORM_ENDPOINT = 'https://formbold.com/s/obkdN';
 let timelineMarkers = [];
+let collectedAnswers = [];
 
 if (timelineTrack) {
     timelineTrack.addEventListener('click', onTimelineClick);
@@ -52,6 +53,7 @@ function initializePlayer(videoId) {
         playerVars: {
             'playsinline': 1,
             'controls': 1,
+            'fs': 0,
             'rel': 0,
             'origin': (window.location.protocol === 'file:') ? undefined : window.location.origin
         },
@@ -281,22 +283,54 @@ function formatTime(seconds) {
     return mins + ':' + (secs < 10 ? '0' + secs : secs);
 }
 
+function csvEscape(value) {
+    const v = value == null ? '' : String(value);
+    const needsQuotes = /[",\n]/.test(v);
+    const escaped = v.replace(/"/g, '""');
+    return needsQuotes ? `"${escaped}"` : escaped;
+}
+
+function answersToCsv(entries) {
+    const ratingKeysSet = new Set();
+    entries.forEach(entry => {
+        if (entry && entry.ratings) {
+            Object.keys(entry.ratings).forEach(key => ratingKeysSet.add(key));
+        }
+    });
+
+    const ratingKeys = Array.from(ratingKeysSet).sort();
+    const headers = ['session_id', 'question_id', 'checkpoint_index', 'video_time', 'answer'].concat(ratingKeys);
+    const lines = [];
+    lines.push(headers.map(csvEscape).join(','));
+
+    entries.forEach(entry => {
+        const base = [
+            entry.session_id,
+            entry.question_id,
+            entry.checkpoint_index,
+            entry.video_time,
+            entry.answer
+        ];
+        const ratingValues = ratingKeys.map(key => (entry.ratings && entry.ratings[key]) || '');
+        const row = base.concat(ratingValues);
+        lines.push(row.map(csvEscape).join(','));
+    });
+
+    return lines.join('\n');
+}
+
 // Submit Answer Button Logic
 if (submitAnswerBtn && answerInputEl) {
     submitAnswerBtn.addEventListener('click', async () => {
+        submitAnswerBtn.disabled = true;
         const answer = answerInputEl.value.trim();
 
         const questionId = submitAnswerBtn.dataset.questionId || '';
         const checkpointIndex = submitAnswerBtn.dataset.checkpointIndex || '';
         const videoTime = submitAnswerBtn.dataset.videoTime || '';
 
-        const formData = new FormData();
-        formData.append('question_id', questionId);
-        formData.append('answer', answer);
-        formData.append('checkpoint_index', checkpointIndex);
-        formData.append('video_time', videoTime);
-
-        // Collect rating values if present
+        // Collect rating values if present into an object
+        const ratings = {};
         if (ratingContainer) {
             const ratingInputs = ratingContainer.querySelectorAll('input[type="radio"]');
             const seenNames = new Set();
@@ -305,7 +339,7 @@ if (submitAnswerBtn && answerInputEl) {
                 seenNames.add(input.name);
                 const selected = ratingContainer.querySelector(`input[name="${input.name}"]:checked`);
                 if (selected) {
-                    formData.append(input.name, selected.value);
+                    ratings[input.name] = selected.value;
                 }
             });
         }
@@ -313,25 +347,88 @@ if (submitAnswerBtn && answerInputEl) {
         if (!window._sessionId) {
             window._sessionId = Math.random().toString(36).slice(2);
         }
-        formData.append('session_id', window._sessionId);
 
-        try {
-            await fetch(GETFORM_ENDPOINT, {
-                method: 'POST',
-                body: formData
+        const entry = {
+            question_id: questionId,
+            answer,
+            checkpoint_index: checkpointIndex,
+            video_time: videoTime,
+            ratings,
+            session_id: window._sessionId
+        };
+        collectedAnswers.push(entry);
+
+        const isLastCheckpoint =
+            config &&
+            Array.isArray(config.checkpoints) &&
+            Number(checkpointIndex) === config.checkpoints.length - 1;
+
+        if (isLastCheckpoint) {
+            const formData = new FormData();
+            formData.append('session_id', window._sessionId);
+
+            const fields = {};
+
+            collectedAnswers.forEach(entry => {
+                const qId = entry.question_id || '';
+                if (!qId) {
+                    return;
+                }
+
+                if (entry.answer) {
+                    fields[`${qId}_answer`] = entry.answer;
+                }
+
+                if (entry.ratings) {
+                    Object.keys(entry.ratings).forEach(key => {
+                        const value = entry.ratings[key];
+                        if (!value) return;
+
+                        const expectedPrefix = `rating_${qId}_`;
+                        let featurePart;
+                        if (key.startsWith(expectedPrefix)) {
+                            featurePart = key.slice(expectedPrefix.length);
+                        } else if (key.startsWith('rating_')) {
+                            featurePart = key.slice('rating_'.length);
+                        } else {
+                            featurePart = key;
+                        }
+
+                        const fieldName = `${qId}_rating_${featurePart}`;
+                        fields[fieldName] = value;
+                    });
+                }
             });
 
-            // Hide Overlay
-            formOverlay.classList.add('hidden');
-            body.classList.remove('form-active');
+            Object.keys(fields).forEach(name => {
+                formData.append(name, fields[name]);
+            });
 
-            // Resume Video
-            if (player && player.playVideo) {
-                player.playVideo();
+            try {
+                await fetch(GETFORM_ENDPOINT, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                collectedAnswers = [];
+            } catch (e) {
+                console.error('Error submitting answers to Formbold', e);
+                alert('There was a problem submitting your answers. Please try again.');
+                submitAnswerBtn.disabled = false;
+                return;
             }
-        } catch (e) {
-            console.error('Error submitting answer to Getform', e);
-            alert('There was a problem submitting your answer. Please try again.');
+        } else {
+            // Not the last checkpoint: allow button to be used again on the next overlay
+            submitAnswerBtn.disabled = false;
+        }
+
+        // Hide Overlay
+        formOverlay.classList.add('hidden');
+        body.classList.remove('form-active');
+
+        // Resume Video
+        if (player && player.playVideo) {
+            player.playVideo();
         }
     });
 }
