@@ -20,7 +20,7 @@ const ratingContainer = document.getElementById('ratingContainer');
 const questionTextEl = document.getElementById('questionText');
 const answerInputEl = document.getElementById('answerInput');
 const submitAnswerBtn = document.getElementById('submitAnswerBtn');
-const GETFORM_ENDPOINT = 'https://formbold.com/s/obkdN';
+const GETFORM_ENDPOINT = 'https://formbold.com/s/oylaA';
 let timelineMarkers = [];
 let collectedAnswers = [];
 
