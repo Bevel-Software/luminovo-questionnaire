@@ -101,15 +101,9 @@ const videoConfig = {
         // Final thoughts at 253 seconds
         {
             "timestamp": 253,
-            "id": "final_thoughts",
+            "id": "final_thoughts_email",
             "type": "text",
-            "question": "Any final thoughts?"
-        },
-        {
-            "timestamp": 253,
-            "id": "email_feedback",
-            "type": "text",
-            "question": "Optional: If you'd like to give more detailed feedback over an interview, please provide your email."
+            "question": "If you have any final thoughts, share here. Also your email address if you'd like to give more detailed feedback over an interview."
         }
     ]
 };
