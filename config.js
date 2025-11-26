@@ -1,72 +1,115 @@
 const videoConfig = {
-    "videoId": "zsMjkPzmqhA",
+    "videoId": "efHYzQwahtw",
     "checkpoints": [
-        // Section 1 – Category 1 shown early to demonstrate complex UI
+        // Company and role questions at 29 seconds
         {
-            "timestamp": 10,
-            "id": "category1",
-            "type": "rating_block",
-            "title": "Section 2 of 5 – Category 1: ChatGPT specialized in knowing information about parts",
-            "description": "This is a ChatGPT trained on all electronics parts, with access to external data sources. Please rate each feature and tell us what is missing.",
-            "features": [
-                { "id": "find_alternatives", "label": "Find part alternatives" },
-                { "id": "find_prices", "label": "Find prices" },
-                { "id": "find_suppliers", "label": "Find suppliers" },
-                { "id": "find_lead_times", "label": "Find lead times" },
-                { "id": "find_datasheet_url", "label": "Find datasheet URL" }
-            ],
-            "freeTextLabel": "Which feature is currently missing which you'd love to have in this category?"
+            "timestamp": 29,
+            "id": "company_role",
+            "type": "single_choice",
+            "question": "What type of company do you work at?",
+            "options": ["OEM", "ODM", "EMS", "E2MS", "Other"]
         },
-        // Section 2 – intro: company + role (now comes after first complex block)
         {
-            "timestamp": 30,
-            "id": "section1_intro",
+            "timestamp": 29,
+            "id": "role",
+            "type": "text", 
+            "question": "What's your role?"
+        },
+        // Pricing and availability importance at 52 seconds
+        {
+            "timestamp": 52,
+            "id": "pricing_importance",
+            "type": "scale_1_to_5",
+            "question": "How would you rate the importance of finding pricing and availability data using GPT?"
+        },
+        // Data manipulation importance at 67 seconds
+        {
+            "timestamp": 67,
+            "id": "data_manipulation",
+            "type": "scale_1_to_5",
+            "question": "How would you rate the importance of manipulating data into bespoke tables using GPT?"
+        },
+        // Part alternatives importance at 94 seconds
+        {
+            "timestamp": 94,
+            "id": "alternatives_importance",
+            "type": "scale_1_to_5",
+            "question": "How would you rate the importance of finding part alternatives using GPT?"
+        },
+        // Datasheets importance at 124 seconds
+        {
+            "timestamp": 124,
+            "id": "datasheets_importance",
+            "type": "scale_1_to_5",
+            "question": "How would you rate the importance of fetching, comparing, and explaining datasheets using GPT?"
+        },
+        // Compliance importance at 141 seconds
+        {
+            "timestamp": 141,
+            "id": "compliance_importance",
+            "type": "scale_1_to_5",
+            "question": "How would you rate the importance of checking compliance information using GPT?"
+        },
+        // Documentation importance at 165 seconds
+        {
+            "timestamp": 165,
+            "id": "docs_importance",
+            "type": "scale_1_to_5",
+            "question": "How would you rate the importance of uploading your own documentation and having it available across conversations?"
+        },
+        // Content generation importance at 182 seconds
+        {
+            "timestamp": 182,
+            "id": "content_generation",
+            "type": "scale_1_to_5",
+            "question": "How would you rate the importance of generating content (e.g., emails) using GPT?"
+        },
+        // Missing features and preference at 188 seconds
+        {
+            "timestamp": 188,
+            "id": "missing_features",
             "type": "text",
-            "question": "Briefly tell us: what type of company do you work at, and what is your role?"
+            "question": "Which feature is currently missing that you would love to have in this category?"
         },
-        // Section 3 – Category 2: ChatBOM
         {
-            "timestamp": 50,
-            "id": "category2",
-            "type": "rating_block",
-            "title": "Section 3 of 5 – Category 2: ChatGPT to upload excel BOM files, ask questions and fill them out",
-            "description": "This is a chat interface that allows you to chat with your BOM files and perform certain operations. Please rate each feature and tell us what is missing.",
-            "features": [
-                { "id": "ask_questions", "label": "Ask questions about BOM" },
-                { "id": "auto_fill_prices", "label": "Automatically fill in prices" },
-                { "id": "auto_fill_params", "label": "Automatically fill in technical parameters of parts" },
-                { "id": "assess_full_price", "label": "Assess full price of BOM" },
-                { "id": "parts_risks", "label": "Identify parts that are subject to risks" },
-                { "id": "auto_fill_alternatives", "label": "Auto fill in alternatives" }
-            ],
-            "freeTextLabel": "Which feature is currently missing which you'd love to have in this category?"
+            "timestamp": 188,
+            "id": "feature_preference",
+            "type": "single_choice",
+            "question": "If you could only have one of these features available today, which one would it be?",
+            "options": ["Search & Availability", "Data Manipulation", "Finding Alternatives", "Fetching and Explaining Datasheets", "Compliance Checks", "Docs across conversations", "Email/Template Generation"]
         },
-        // Section 4 – Category 4: Background AI Agent
+        // Background agent features at 235 seconds
         {
-            "timestamp": 70,
-            "id": "category4",
+            "timestamp": 235,
+            "id": "background_agent",
             "type": "rating_block",
-            "title": "Section 4 of 5 – Category 4: Background AI Agent",
-            "description": "An AI agent that collects information in the background based on your query and presents it to you periodically. Please rate each feature and tell us what is missing.",
+            "title": "Background AI Agent Features",
+            "description": "Please rate each feature for the background AI agent.",
             "features": [
                 { "id": "pcn_summary", "label": "PCN summary" },
-                { "id": "obsolescence_risks", "label": "Notifications on obsolescence risks" }
+                { "id": "obsolescence_risks", "label": "Obsolescence risks" }
             ],
-            "freeTextLabel": "Which feature is currently missing which you'd love to have in this category?"
+            "freeTextLabel": "Which feature is currently missing that you'd love to have in this category?"
         },
-        // Section 5 – Finale
         {
-            "timestamp": 90,
-            "id": "finale",
-            "type": "rating_block",
-            "title": "Section 5 of 5 – Finale",
-            "description": "Please rate each category overall and share any final thoughts.",
-            "features": [
-                { "id": "cat1_overall", "label": "ChatGPT specialized in parts" },
-                { "id": "cat2_overall", "label": "ChatBOM" },
-                { "id": "cat4_overall", "label": "Background agent" }
-            ],
-            "freeTextLabel": "Any final thoughts? You can also leave your email if you'd like to give more detailed feedback over an interview."
+            "timestamp": 235,
+            "id": "agent_preference",
+            "type": "single_choice",
+            "question": "If you could only have one of these features available today, which one would it be?",
+            "options": ["PCN summary", "Obsolescence risk"]
+        },
+        // Final thoughts at 253 seconds
+        {
+            "timestamp": 253,
+            "id": "final_thoughts",
+            "type": "text",
+            "question": "Any final thoughts?"
+        },
+        {
+            "timestamp": 253,
+            "id": "email_feedback",
+            "type": "text",
+            "question": "Optional: If you'd like to give more detailed feedback over an interview, please provide your email."
         }
     ]
 };

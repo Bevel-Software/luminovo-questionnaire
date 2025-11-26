@@ -55,6 +55,8 @@ function initializePlayer(videoId) {
             'controls': 1,
             'fs': 0,
             'rel': 0,
+            'disablekb': 1,
+            'modestbranding': 1,
             'origin': (window.location.protocol === 'file:') ? undefined : window.location.origin
         },
         events: {
@@ -69,6 +71,24 @@ function onPlayerReady(event) {
     // Player is ready
     startMonitoring();
     setupTimeline();
+    
+    // Disable right-click context menu on video player
+    const playerElement = document.getElementById('player');
+    if (playerElement) {
+        playerElement.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // Also disable on the iframe inside
+        const iframe = playerElement.querySelector('iframe');
+        if (iframe) {
+            iframe.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+        }
+    }
 }
 
 function onPlayerError(event) {
@@ -182,9 +202,122 @@ function triggerCheckpoint(checkpoint, index) {
         if (questionTextEl) {
             questionTextEl.textContent = checkpoint.freeTextLabel || 'Any other thoughts about this category?';
         }
+    } else if (checkpoint.type === 'scale_1_to_5' && ratingContainer) {
+        // Build a 1-5 scale rating
+        const title = document.createElement('h3');
+        title.className = 'rating-title';
+        title.textContent = checkpoint.question || '';
+        ratingContainer.appendChild(title);
+
+        const scaleRow = document.createElement('div');
+        scaleRow.className = 'scale-row';
+        
+        const name = `scale_${checkpoint.id || 'question'}`;
+        scaleRow.innerHTML = `
+            <div class="scale-labels">
+                <span>Not Important</span>
+                <span>Very Important</span>
+            </div>
+            <div class="scale-options">
+                <label class="scale-option"><input type="radio" name="${name}" value="1"><span>1</span></label>
+                <label class="scale-option"><input type="radio" name="${name}" value="2"><span>2</span></label>
+                <label class="scale-option"><input type="radio" name="${name}" value="3"><span>3</span></label>
+                <label class="scale-option"><input type="radio" name="${name}" value="4"><span>4</span></label>
+                <label class="scale-option"><input type="radio" name="${name}" value="5"><span>5</span></label>
+            </div>
+        `;
+        ratingContainer.appendChild(scaleRow);
+
+        // Hide the text input for scale questions
+        if (answerInputEl) {
+            answerInputEl.style.display = 'none';
+        }
+        if (questionTextEl) {
+            questionTextEl.style.display = 'none';
+        }
+    } else if (checkpoint.type === 'single_choice' && ratingContainer) {
+        // Build single choice options
+        const title = document.createElement('h3');
+        title.className = 'rating-title';
+        title.textContent = checkpoint.question || '';
+        ratingContainer.appendChild(title);
+
+        const choiceContainer = document.createElement('div');
+        choiceContainer.className = 'choice-container';
+        
+        const name = `choice_${checkpoint.id || 'question'}`;
+        if (Array.isArray(checkpoint.options)) {
+            checkpoint.options.forEach((option, index) => {
+                const choiceRow = document.createElement('div');
+                choiceRow.className = 'choice-row';
+                choiceRow.innerHTML = `
+                    <label class="choice-option">
+                        <input type="radio" name="${name}" value="${option}">
+                        <span>${option}</span>
+                    </label>
+                `;
+                choiceContainer.appendChild(choiceRow);
+            });
+        }
+        ratingContainer.appendChild(choiceContainer);
+
+        // Hide the text input for choice questions
+        if (answerInputEl) {
+            answerInputEl.style.display = 'none';
+        }
+        if (questionTextEl) {
+            questionTextEl.style.display = 'none';
+        }
+    } else if (checkpoint.type === 'matrix' && ratingContainer) {
+        // Build matrix rating
+        const title = document.createElement('h3');
+        title.className = 'rating-title';
+        title.textContent = checkpoint.question || '';
+        ratingContainer.appendChild(title);
+
+        // Create header row
+        const headerRow = document.createElement('div');
+        headerRow.className = 'rating-row rating-header-row';
+        let headerHtml = '<span class="rating-label"></span>';
+        if (Array.isArray(checkpoint.columns)) {
+            checkpoint.columns.forEach(col => {
+                headerHtml += `<span class="rating-option">${col}</span>`;
+            });
+        }
+        headerRow.innerHTML = headerHtml;
+        ratingContainer.appendChild(headerRow);
+
+        // Create rows for each item
+        if (Array.isArray(checkpoint.rows)) {
+            checkpoint.rows.forEach(row => {
+                const matrixRow = document.createElement('div');
+                matrixRow.className = 'rating-row';
+                
+                const safeId = String(row || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+                const name = `matrix_${checkpoint.id || 'question'}_${safeId}`;
+                
+                let rowHtml = `<span class="rating-label">${row}</span>`;
+                if (Array.isArray(checkpoint.columns)) {
+                    checkpoint.columns.forEach(col => {
+                        const safeCol = String(col || '').replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
+                        rowHtml += `<label class="rating-option"><input type="radio" name="${name}" value="${safeCol}">${col}</label>`;
+                    });
+                }
+                matrixRow.innerHTML = rowHtml;
+                ratingContainer.appendChild(matrixRow);
+            });
+        }
+
+        if (questionTextEl) {
+            questionTextEl.textContent = checkpoint.freeTextLabel || 'Any additional comments?';
+        }
     } else {
         // Simple text question
+        if (answerInputEl) {
+            answerInputEl.style.display = 'block';
+        }
         if (questionTextEl) {
+            questionTextEl.style.display = 'block';
             questionTextEl.textContent = checkpoint.question || 'Please answer this question:';
         }
     }
